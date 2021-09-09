@@ -60,13 +60,12 @@ import tflearn
 from tflearn.layers.conv import conv_2d, max_pool_2d
 from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.estimator import regression
-from tqdm import tqdm
 
 
 train_dir = 'C:\\Users\\Tom\\Desktop\\POOK\\projects\\Py\\red_panda_set\\redpanda'
 test_dir = 'C:\\Users\\Tom\\Desktop\\POOK\\projects\\Py\\red_panda_set\\test'
 
-img_size = 50
+img_size = 60
 lr = 1e-3
 MODEL_NAME = f'redpanda-{lr}-2conv-basic.model'
 def label_img(img):
@@ -151,10 +150,12 @@ for num,data in enumerate(test_data[:12]):
     orig = img_data
     data = img_data.reshape(img_size, img_size, 1)
     model_out = model.predict([data])[0]
-    
-    if np.argmax(model_out) == 1: str_label='not'
+
+    print(np.real(model_out[0]))
+
+    if np.real(model_out)[0] < 0.3 : str_label='not'
     else: str_label='redpanda'
-        
+
     y.imshow(orig,cmap='gray')
     plt.title(str_label)
     y.axes.get_xaxis().set_visible(False)
