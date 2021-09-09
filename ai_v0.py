@@ -1,3 +1,4 @@
+'''
 import os
 import caer
 import canaro
@@ -24,12 +25,12 @@ print(rp)
 
 
 train = caer.preprocess_from_dir(an_path, rp, channels=channels, IMG_SIZE=IMG_SIZE, isShuffle=True)
-'''
+
 import matplotlib.pyplot as plt
 plt.figure(figsize=(30,30))
 plt.imshow(train[0][0], cmap='gray')
 plt.show()
-'''
+
 featset, labels = caer.sep_train(train, IMG_SIZE=IMG_SIZE)
 # Normalize featset ==> (0,1)
 from tensorflow.keras.utils import to_categorical
@@ -46,3 +47,44 @@ train_gen = datagen.flow(x_train, y_train, batch_size=BATCH_SIZE)
 
 model = canaro.models.createDefaultModel(IMG_SIZE=IMG_SIZE, channels=channels, output_dims=len(rp), loss='binary_crossentropy', decay=1e-6, learning_rate=0.001, momentum=0.9, nesterov=True)
 model.summary()
+'''
+
+import cv2
+import numpy as np
+import os
+from random import shuffle
+
+
+train_dir = 'C:\\Users\\Tom\\Desktop\\POOK\\projects\\Py\\red_panda_set\\redpanda'
+test_dir = 'C:\\Users\\Tom\\Desktop\\POOK\\projects\\Py\\red_panda_set\\test'
+
+img_size = 50
+lr = 1e-3
+
+def label_img(img):
+    word_label = img.split('.')[-3]
+    if word_label == 'redpanda': return [1,0]
+
+def create_train_data():
+    train_data = []
+    for img in os.listdir(train_dir):
+        label = label_img(img)
+        path = os.path.join(train_dir, img)
+        img = cv2.resize(cv2.imread(path, cv2.IMREAD_GRAYSCALE), (img_size, img_size))
+        train_data.append([np.array(img), np.array(label)])
+    shuffle(train_data)
+    np.save('train_data.npy', train_data)
+    return train_data
+
+def process_test_data():
+    testing_data = []
+    for img in os.listdir(test_dir):
+        path = os.path.join(test_dir, img)
+        img_num = img.split('.')[0]
+        img = cv2.resize(cv2.imread(path, cv2.IMREAD_GRAYSCALE), (img_size, img_size))
+        testing_data.append([np.array(img), img_num])
+    np.save('test_data.npy', testing_data)
+    return testing_data
+
+train_data = create_train_data()
+
