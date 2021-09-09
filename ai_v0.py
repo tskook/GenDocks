@@ -53,6 +53,8 @@ import cv2
 import numpy as np
 import os
 from random import shuffle
+from numpy.lib.npyio import load
+from numpy.lib.type_check import imag
 
 
 train_dir = 'C:\\Users\\Tom\\Desktop\\POOK\\projects\\Py\\red_panda_set\\redpanda'
@@ -60,10 +62,11 @@ test_dir = 'C:\\Users\\Tom\\Desktop\\POOK\\projects\\Py\\red_panda_set\\test'
 
 img_size = 50
 lr = 1e-3
-
+MODEL_NAME = f'redpanda-{lr}-2conv-basic.model'
 def label_img(img):
     word_label = img.split('.')[-3]
     if word_label == 'redpanda': return [1,0]
+    else: return [0,1]
 
 def create_train_data():
     train_data = []
@@ -88,3 +91,36 @@ def process_test_data():
 
 train_data = create_train_data()
 
+import tflearn
+from tflearn.layers.conv import conv_2d, max_pool_2d
+from tflearn.layers.core import input_data, dropout, fully_connected
+from tflearn.layers.estimator import regression
+
+convnet = input_data(shape=[None, img_size, img_size, 1], name='input')
+
+convnet = conv_2d(convnet, 32, 5, activation='relu')
+convnet = max_pool_2d(convnet, 5)
+
+convnet = conv_2d(convnet, 64, 5, activation='relu')
+convnet = max_pool_2d(convnet, 5)
+
+convnet = fully_connected(convnet, 1024, activation='relu')
+convnet = dropout(convnet, 0.8)
+
+convnet = fully_connected(convnet, 2, activation='softmax')
+convnet = regression(convnet, optimizer='adam', learning_rate=lr, loss='categorical_crossentropy', name='targets')
+
+model = tflearn.DNN(convnet, tensorboard_dir='log')
+
+if os.path.exists(f'{MODEL_NAME}.meta'):
+    model.load(MODEL_NAME)
+    print('loaded')
+
+train = train_data[:-500]
+test = train_data[-500:]
+
+X = np.array([i[0] for i in train]).reshape(-1, img_size, img_size)
+Y = [i[0] for i in train]
+
+test_x = np.array([i[0] for i in test]).reshape(-1, img_size, img_size)
+test_y = [i[0] for i in test]
