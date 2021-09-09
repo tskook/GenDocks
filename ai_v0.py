@@ -53,8 +53,14 @@ import cv2
 import numpy as np
 import os
 from random import shuffle
+from numpy.core.records import fromfile
 from numpy.lib.npyio import load
 from numpy.lib.type_check import imag
+import tflearn
+from tflearn.layers.conv import conv_2d, max_pool_2d
+from tflearn.layers.core import input_data, dropout, fully_connected
+from tflearn.layers.estimator import regression
+from tqdm import tqdm
 
 
 train_dir = 'C:\\Users\\Tom\\Desktop\\POOK\\projects\\Py\\red_panda_set\\redpanda'
@@ -91,10 +97,6 @@ def process_test_data():
 
 train_data = create_train_data()
 
-import tflearn
-from tflearn.layers.conv import conv_2d, max_pool_2d
-from tflearn.layers.core import input_data, dropout, fully_connected
-from tflearn.layers.estimator import regression
 
 convnet = input_data(shape=[None, img_size, img_size, 1], name='input')
 
@@ -124,3 +126,37 @@ Y = [i[0] for i in train]
 
 test_x = np.array([i[0] for i in test]).reshape(-1, img_size, img_size)
 test_y = [i[0] for i in test]
+
+model.fit({'input': X}, {'targets': Y}, n_epoch=5, validation_set=({'input': test_x}, {'targets': test_y}), 
+    snapshot_step=500, show_metric=True, run_id=MODEL_NAME)
+model.save(MODEL_NAME)
+
+import matplotlib.pyplot as plt
+
+# if you need to create the data:
+test_data = process_test_data()
+# if you already have some saved:
+test_data = np.load('test_data.npy', allow_pickle=True)
+
+fig=plt.figure()
+
+for num,data in enumerate(test_data[:12]):
+    # cat: [1,0]
+    # dog: [0,1]
+    
+    img_num = data[1]
+    img_data = data[0]
+    
+    y = fig.add_subplot(3,4,num+1)
+    orig = img_data
+    data = img_data.reshape(img_size, img_size, 1)
+    model_out = model.predict([data])[0]
+    
+    if np.argmax(model_out) == 1: str_label='not'
+    else: str_label='redpanda'
+        
+    y.imshow(orig,cmap='gray')
+    plt.title(str_label)
+    y.axes.get_xaxis().set_visible(False)
+    y.axes.get_yaxis().set_visible(False)
+plt.show()
