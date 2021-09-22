@@ -62,8 +62,8 @@ from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.estimator import regression
 
 
-train_dir = 'C:\\Users\\Tom\\Desktop\\POOK\\projects\\Py\\red_panda_set\\redpanda'
-test_dir = 'C:\\Users\\Tom\\Desktop\\POOK\\projects\\Py\\red_panda_set\\test'
+train_dir = 'C:\\Users\\u9133908\\Documents\\GitHub\\GenDocks\\redpanda'
+test_dir = 'C:\\Users\\u9133908\\Documents\\GitHub\\GenDocks\\test'
 
 img_size = 60
 lr = 1e-3
